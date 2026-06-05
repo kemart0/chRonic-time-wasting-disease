@@ -1,6 +1,8 @@
 # 2026 qCMB Retreat
 
 ## Connecting GitHub and Alpine
+_These instructions were originally compiled by Eric Anderson._
+
 
 - Logging into Alpine
 ```sh
