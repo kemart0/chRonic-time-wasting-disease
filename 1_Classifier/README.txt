@@ -8,7 +8,8 @@ RUNNING THIS CODE
 
 1 - Prepare training data. See DATA PREPARATION.
 2 - Create conda environment for running "disease_classifier.ipynb". See CODE AND DEPENDENCIES.
-3 - Run each code block of disease_classifier.ipynb to train and validate a classification model.
+3 - Run each code block of disease_classifier.ipynb to train and validate a classification model. 
+4 - Resulting model is saved as "best_model.pth"
 
 ################
 DATA PREPARATION
