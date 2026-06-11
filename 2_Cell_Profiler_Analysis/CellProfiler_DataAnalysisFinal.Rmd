@@ -1,0 +1,297 @@
+---
+title: "CellProfiler Output Cleaning"
+author: "gianna"
+date: "2026-06-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+
+setwd("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData")
+
+```
+```{r}
+#join together the separate files
+Image_Control<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_Control_Image.csv")
+Image_Deer<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_GTDeer_Image.csv")
+Image_Elk<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_GTElk_Image.csv")
+pRions_Image<- rbind(Image_Control, Image_Deer, Image_Elk)
+
+
+Depo_Control<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_Control_DepositionsinTissue.csv")
+Depo_Deer<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_GTDeer_DepositionsinTissue.csv")
+Depo_Elk<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_GTElk_DepositionsinTissue.csv")
+pRions_v3_DepTissue<- rbind(Depo_Control, Depo_Deer, Depo_Elk)
+
+
+Tissue_Control<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_Control_ShrunkenTissue2.csv")
+Tissue_Deer<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_GTDeer_ShrunkenTissue2.csv")
+Tissue_Elk<-read.csv("~/Documents/GitHub/chRonic-time-wasting-disease/CellProfilerOutputs/CellProfilerData/pRions_v3_GTElk_ShrunkenTissue2.csv")
+
+#tissue area/shape measure can be used for later downstream analyses that can give info on the health of the brain (perimeter-area ratios, eccentricity values, etc) but outside the scope of what we aimed for today
+
+```
+
+## pRions_v3_Depositions
+First, we would like to compare the overall image data to determine differences in deposition counts and mean area of depositions
+```{r ImagesFile}
+
+pRions_Image <- pRions_Image%>%
+  mutate(FileName = FileName_DNA)  %>%
+  separate(col = FileName_DNA, 
+           into = c("Mouse", "Treatment", "Region", "Magnification", "ImageNum"), 
+           sep = "_", fill = "right", extra = "drop") %>% 
+  select("Mouse", "Treatment", "Region", "Magnification", "ImageNum", "Count_DepositionsinTissue", "Mean_DepositionsinTissue_AreaShape_Area", "AreaOccupied_AreaOccupied_DepositionsinTissue","AreaOccupied_AreaOccupied_ShrunkenTissue2") %>%
+  rename(Count_Depo = Count_DepositionsinTissue) %>%
+  rename(Mean_Depo_Area = Mean_DepositionsinTissue_AreaShape_Area) %>%
+  rename(DepoAreaOccupied = AreaOccupied_AreaOccupied_DepositionsinTissue) %>%
+  rename(TissueArea = AreaOccupied_AreaOccupied_ShrunkenTissue2) %>%
+  mutate(PercentOccupied = DepoAreaOccupied/TissueArea*100)
+  
+
+```
+
+## plotting image-level data:
+
+Counts Plots
+```{r CountsImage}
+library(tidyverse)
+library(ggprism)
+library(ggsignif)
+
+ggplot(
+  pRions_Image,
+  aes(
+    x = Mouse,
+    y = Count_Depo,
+    fill = Mouse
+  )
+) +
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.8
+  ) +
+  geom_jitter(
+    width = 0.15,
+    alpha = 0.6,
+    size = 2
+  ) +
+  facet_wrap(~Region) +
+  theme_prism(base_size = 14) +
+  labs(
+    x = "Mouse",
+    y = "Depositions per Image"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    )
+  )+
+  scale_y_continuous(
+  expand = expansion(mult = c(0.05, 0.2))
+) +
+  geom_signif(
+  comparisons = list(
+    c("GtDeer", "WT"), 
+    c("GtElk", "WT"), 
+    c("GtDeer", "GtElk")
+  ),
+  map_signif_level = TRUE,
+  test = "t.test")
+
+```
+And % area occupied:
+```{r AreaPercent}
+ggplot(
+  pRions_Image,
+  aes(
+    x = Mouse,
+    y = PercentOccupied,
+    fill = Mouse
+  )
+) +
+  geom_boxplot(
+    outlier.shape = NA,
+    alpha = 0.8
+  ) +
+  geom_jitter(
+    width = 0.15,
+    alpha = 0.6,
+    size = 2
+  ) +
+  facet_wrap(~Region) +
+  theme_prism(base_size = 14) +
+  labs(
+    x = "Mouse",
+    y = "Percent Area Occupied Depositions"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    )
+  )+
+  scale_y_continuous(
+  expand = expansion(mult = c(0.05, 0.2))
+) +
+  geom_signif(
+  comparisons = list(
+    c("GtDeer", "WT"), 
+    c("GtElk", "WT"), 
+    c("GtDeer", "GtElk")
+  ),
+  map_signif_level = TRUE,
+  test = "t.test")
+
+```
+
+
+# Next, we would like to look at the properties of each individual deposition
+
+WT/Control does not have significant numbers of depositions (just random artifacts) and was not included in this comparison
+
+Clean Deposition Data
+```{r DepositionClean}
+
+
+pRion_DepTissue <- pRions_v3_DepTissue %>%
+  mutate(FileName = FileName_DNA)  %>%
+  separate(col = FileName_DNA, 
+           into = c("Mouse", "Treatment", "Region", "Magnification", "ImageNum"), 
+           sep = "_", fill = "right", extra = "drop") %>%
+  rename(Area = AreaShape_Area) %>% 
+  select("Mouse", "Treatment", "Region", "Magnification", "ImageNum", "Area", "Intensity_IntegratedIntensity_InvertedColor", "Intensity_MaxIntensity_InvertedColor", "Intensity_MinIntensity_InvertedColor") %>% #integrated intensity represents area x mean intensity
+  rename(Intensity = Intensity_IntegratedIntensity_InvertedColor) %>%
+  rename(IntensityMax = Intensity_MaxIntensity_InvertedColor) %>%
+  rename(IntensityMin = Intensity_MinIntensity_InvertedColor) %>% 
+  filter(Treatment != "control")
+
+
+```
+Plotting each deposition for area:
+```{r Area plot}
+
+ggplot(
+  pRion_DepTissue,
+  aes(
+    x = Mouse,
+    y = Area,
+    fill = Mouse
+  )
+) +
+  geom_boxplot(
+    width = 0.7,
+    outlier.shape = NA,
+    alpha = 0.6,
+    position = position_dodge(width = 0.8)
+  ) +
+  geom_point(
+    aes(color = Mouse),
+    position = position_jitterdodge(
+      jitter.width = 0.15,
+      dodge.width = 0.8
+    ),
+    size = 2,
+    alpha = 0.005
+  ) +
+  scale_y_log10(
+  expand = expansion(mult = c(0.05, 0.15))
+) +
+  theme_prism(base_size = 14) +
+  labs(
+  title = "Prion Deposition Area by Mouse Strain and Treatment",
+  x = "Mouse Strain",
+  y = expression("Deposition Area (pixels"^2*")"),
+  fill = "Treatment",
+  color = "Treatment"
+  ) +
+  theme(
+  plot.title = element_text(
+    hjust = 0.5,
+    size = 12,
+    face = "bold"
+  ),
+  axis.text.x = element_text(
+    angle = 45,
+    hjust = 1
+  )
+)+
+  geom_signif(
+    comparisons = list(c("GtDeer", "GtElk")), 
+    map_signif_level = TRUE,                 
+    test = "t.test"                         
+  )
+```
+Now looking at intensity:
+
+```{r Integrated Intensity Plot}
+ggplot(
+  pRion_DepTissue,
+  aes(
+    x = Mouse,
+    y = Intensity,
+    fill = Mouse
+  )
+) +
+  geom_boxplot(
+    width = 0.7,
+    outlier.shape = NA,
+    alpha = 0.6,
+    position = position_dodge(width = 0.8)
+  ) +
+  geom_point(
+    aes(color = Mouse),
+    position = position_jitterdodge(
+      jitter.width = 0.15,
+      dodge.width = 0.8
+    ),
+    size = 2,
+    alpha = 0.005
+  ) +
+  scale_y_log10(
+  breaks = c(10, 100, 1000, 10000),
+  labels = scales::label_number(),
+  limits = c(10, 10000),
+  expand = expansion(mult = c(0.05, 0.15))
+) +
+  theme_prism(base_size = 14) +
+  labs(
+    title = "Prion Deposition Staining Intensity by Mouse Strain and Treatment",
+    x = "Mouse Strain",
+    y = "Integrated Intensity",
+    fill = "Treatment",
+    color = "Treatment"
+  ) +
+  theme(
+  plot.title = element_text(
+    hjust = 0.5,
+    size = 12,
+    face = "bold"
+  ),
+  axis.text.x = element_text(
+    angle = 45,
+    hjust = 1
+  )
+)+
+  geom_signif(
+    comparisons = list(c("GtDeer", "GtElk")), 
+    map_signif_level = TRUE,                 
+    test = "t.test"                         
+  )
+```
+
+
+
+
+
+
+
