@@ -14,9 +14,13 @@
 `3_Regional_PrPsc_burden_maps/` - mapping PrPsc to different brain regions
    
 ## Meet the Team!
+
 Kelsey Martin
+
 Charli Geer
+
 Xuan Beatty
+
 Gianna Zinnen
 
 
