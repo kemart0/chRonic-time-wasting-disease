@@ -9,7 +9,7 @@
 
 `1_Classifier/` - machine learning classification model
 
-`2_CellProfiler/` - cell profiler quantitative analysis
+`2_Cell_Profiler_Analysis/` - cell profiler quantitative analysis
 
 `3_Regional_PrPsc_burden_maps/` - mapping PrPsc to different brain regions
    
