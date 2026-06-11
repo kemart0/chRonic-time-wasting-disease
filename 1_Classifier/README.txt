@@ -1,6 +1,6 @@
 1_CLASSIFIER
 
-This directory contains the code used to train a classification model to detect prion positive vs prion negative brain images across different brain tissues at ~4x obj.
+This directory contains the code used to train a machine learning classification model to detect prion positive vs prion negative brain images across different brain tissues at ~4x obj.
 
 #################
 RUNNING THIS CODE
