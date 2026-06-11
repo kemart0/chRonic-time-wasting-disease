@@ -6,8 +6,11 @@
 3) Quantify prion deposition by brain region.
 
 ## Projects
+
 `1_Classifier/` - machine learning classification model
+
 `2_CellProfiler/` - cell profiler quantitative analysis
+
 `3_Regional_PrPsc_burden_maps/` - mapping PrPsc to different brain regions
    
 ## Meet the Team!
